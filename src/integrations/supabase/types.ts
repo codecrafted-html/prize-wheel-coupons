@@ -14,16 +14,55 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      spin_links: {
+        Row: {
+          claimed: boolean
+          claimed_at: string | null
+          coupon_code: string | null
+          created_at: string
+          email: string | null
+          id: string
+          prize: Database["public"]["Enums"]["spin_prize"]
+          slug: string
+        }
+        Insert: {
+          claimed?: boolean
+          claimed_at?: string | null
+          coupon_code?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          prize: Database["public"]["Enums"]["spin_prize"]
+          slug: string
+        }
+        Update: {
+          claimed?: boolean
+          claimed_at?: string | null
+          coupon_code?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          prize?: Database["public"]["Enums"]["spin_prize"]
+          slug?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_prize: {
+        Args: { _email: string; _slug: string }
+        Returns: {
+          already_claimed: boolean
+          coupon_code: string
+          prize: Database["public"]["Enums"]["spin_prize"]
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      spin_prize: "ice_cream" | "soda" | "bowl" | "discount_50"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +189,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      spin_prize: ["ice_cream", "soda", "bowl", "discount_50"],
+    },
   },
 } as const
