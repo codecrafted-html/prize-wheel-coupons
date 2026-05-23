@@ -9,13 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AdminRouteImport } from './routes/admin'
+import { Route as BeheerPokeLocoRouteImport } from './routes/beheer-poke-loco'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SpinSlugRouteImport } from './routes/spin.$slug'
 
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const BeheerPokeLocoRoute = BeheerPokeLocoRouteImport.update({
+  id: '/beheer-poke-loco',
+  path: '/beheer-poke-loco',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -31,41 +31,41 @@ const SpinSlugRoute = SpinSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/beheer-poke-loco': typeof BeheerPokeLocoRoute
   '/spin/$slug': typeof SpinSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/beheer-poke-loco': typeof BeheerPokeLocoRoute
   '/spin/$slug': typeof SpinSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/beheer-poke-loco': typeof BeheerPokeLocoRoute
   '/spin/$slug': typeof SpinSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/spin/$slug'
+  fullPaths: '/' | '/beheer-poke-loco' | '/spin/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/spin/$slug'
-  id: '__root__' | '/' | '/admin' | '/spin/$slug'
+  to: '/' | '/beheer-poke-loco' | '/spin/$slug'
+  id: '__root__' | '/' | '/beheer-poke-loco' | '/spin/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  BeheerPokeLocoRoute: typeof BeheerPokeLocoRoute
   SpinSlugRoute: typeof SpinSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/beheer-poke-loco': {
+      id: '/beheer-poke-loco'
+      path: '/beheer-poke-loco'
+      fullPath: '/beheer-poke-loco'
+      preLoaderRoute: typeof BeheerPokeLocoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -87,7 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  BeheerPokeLocoRoute: BeheerPokeLocoRoute,
   SpinSlugRoute: SpinSlugRoute,
 }
 export const routeTree = rootRouteImport

@@ -3,10 +3,21 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PRIZES, prizeMeta, type Prize } from "@/lib/prizes";
+import { Logo } from "@/components/Logo";
 
-export const Route = createFileRoute("/admin")({
+// 🔒 Privé beheerpagina — wijzig dit wachtwoord wanneer je wil.
+const ADMIN_PASSWORD = "PokeLoco2026!";
+const STORAGE_KEY = "pl-admin-ok";
+
+export const Route = createFileRoute("/beheer-poke-loco")({
+  ssr: false,
   component: AdminPage,
-  head: () => ({ meta: [{ title: "Beheer · Pokeloco Spin & Win" }] }),
+  head: () => ({
+    meta: [
+      { title: "Beheer · Poké-Loco" },
+      { name: "robots", content: "noindex,nofollow" },
+    ],
+  }),
 });
 
 interface Row {
@@ -19,6 +30,58 @@ interface Row {
 }
 
 function AdminPage() {
+  const [authed, setAuthed] = useState(false);
+  const [pwd, setPwd] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem(STORAGE_KEY) === "1") {
+      setAuthed(true);
+    }
+  }, []);
+
+  if (!authed) {
+    return (
+      <main className="flex min-h-screen items-center justify-center px-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (pwd === ADMIN_PASSWORD) {
+              sessionStorage.setItem(STORAGE_KEY, "1");
+              setAuthed(true);
+            } else {
+              toast.error("Verkeerd wachtwoord");
+            }
+          }}
+          className="w-full max-w-sm rounded-3xl border border-border bg-card p-8 text-center shadow-xl"
+        >
+          <Logo className="mx-auto h-20 w-auto" />
+          <h1 className="mt-4 font-display text-2xl">Beheerderspagina</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Voer je wachtwoord in om door te gaan.
+          </p>
+          <input
+            type="password"
+            autoFocus
+            value={pwd}
+            onChange={(e) => setPwd(e.target.value)}
+            placeholder="Wachtwoord"
+            className="mt-6 w-full rounded-xl border border-input bg-background px-4 py-3 text-base outline-none ring-primary/40 focus:ring-2"
+          />
+          <button className="mt-3 w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground hover:bg-primary/90">
+            Inloggen
+          </button>
+        </form>
+      </main>
+    );
+  }
+
+  return <AdminInner onLogout={() => {
+    sessionStorage.removeItem(STORAGE_KEY);
+    setAuthed(false);
+  }} />;
+}
+
+function AdminInner({ onLogout }: { onLogout: () => void }) {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | Prize>("all");
@@ -82,14 +145,14 @@ function AdminPage() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <a href="/" className="text-xs text-muted-foreground hover:underline">
-            ← terug
-          </a>
-          <h1 className="mt-1 font-display text-4xl">Campagnelinks</h1>
-          <p className="text-muted-foreground">
-            Deel deze unieke links met klanten. Eén link = één draaibeurt.
-          </p>
+        <div className="flex items-center gap-4">
+          <Logo className="h-16 w-auto" />
+          <div>
+            <h1 className="font-display text-3xl">Campagnelinks</h1>
+            <p className="text-sm text-muted-foreground">
+              Eén link = één draaibeurt.
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <button
@@ -103,6 +166,12 @@ function AdminPage() {
             className="rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold hover:bg-accent"
           >
             Download CSV
+          </button>
+          <button
+            onClick={onLogout}
+            className="rounded-full border border-border bg-card px-4 py-2.5 text-sm text-muted-foreground hover:bg-accent"
+          >
+            Uitloggen
           </button>
         </div>
       </header>
@@ -133,10 +202,7 @@ function AdminPage() {
         <Chip active={showClaimed === "open"} onClick={() => setShowClaimed("open")}>
           Open
         </Chip>
-        <Chip
-          active={showClaimed === "claimed"}
-          onClick={() => setShowClaimed("claimed")}
-        >
+        <Chip active={showClaimed === "claimed"} onClick={() => setShowClaimed("claimed")}>
           Geclaimd
         </Chip>
       </div>
@@ -183,7 +249,7 @@ function AdminPage() {
                           Geclaimd
                         </span>
                       ) : (
-                        <span className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary">
+                        <span className="rounded-full bg-primary/15 px-2 py-1 text-xs text-primary">
                           Open
                         </span>
                       )}

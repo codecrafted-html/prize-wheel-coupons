@@ -1,21 +1,13 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SpinWheel } from "@/components/SpinWheel";
+import { Logo } from "@/components/Logo";
 import { prizeMeta, type Prize } from "@/lib/prizes";
 
 export const Route = createFileRoute("/spin/$slug")({
-  loader: async ({ params }) => {
-    const { data, error } = await supabase
-      .from("spin_links")
-      .select("slug, prize, claimed, coupon_code, email")
-      .eq("slug", params.slug)
-      .maybeSingle();
-    if (error) throw error;
-    if (!data) throw notFound();
-    return data;
-  },
+  ssr: false,
   component: SpinPage,
   notFoundComponent: () => (
     <main className="flex min-h-screen items-center justify-center px-6 text-center">
@@ -27,26 +19,67 @@ export const Route = createFileRoute("/spin/$slug")({
       </div>
     </main>
   ),
-  head: () => ({
-    meta: [{ title: "Spin & Win — Pokeloco" }],
-  }),
+  head: () => ({ meta: [{ title: "Spin & Win — Poké-Loco" }] }),
 });
 
 type Stage = "intro" | "spinning" | "email" | "done";
 
-function SpinPage() {
-  const link = Route.useLoaderData();
-  const prize = link.prize as Prize;
-  const meta = prizeMeta(prize);
+interface LinkRow {
+  slug: string;
+  prize: Prize;
+  claimed: boolean;
+  coupon_code: string | null;
+  email: string | null;
+}
 
-  const [stage, setStage] = useState<Stage>(link.claimed ? "done" : "intro");
+function SpinPage() {
+  const { slug } = Route.useParams();
+  const [link, setLink] = useState<LinkRow | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [stage, setStage] = useState<Stage>("intro");
   const [email, setEmail] = useState("");
-  const [coupon, setCoupon] = useState<string | null>(link.coupon_code ?? null);
+  const [coupon, setCoupon] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data, error } = await supabase
+        .from("spin_links")
+        .select("slug, prize, claimed, coupon_code, email")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (error) {
+        setLoadError(error.message);
+        return;
+      }
+      if (!data) {
+        setLoadError("not_found");
+        return;
+      }
+      setLink(data as LinkRow);
+      setCoupon(data.coupon_code);
+      if (data.claimed) setStage("done");
+    })();
+  }, [slug]);
+
+  if (loadError === "not_found") {
+    throw notFound();
+  }
+
+  if (!link) {
+    return (
+      <main className="flex min-h-screen items-center justify-center px-6 text-center text-muted-foreground">
+        Laden…
+      </main>
+    );
+  }
+
+  const prize = link.prize;
+  const meta = prizeMeta(prize);
 
   async function handleClaim(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email.trim() || !link) return;
     setSubmitting(true);
     const { data, error } = await supabase.rpc("claim_prize", {
       _slug: link.slug,
@@ -55,12 +88,11 @@ function SpinPage() {
     setSubmitting(false);
 
     if (error) {
-      const msg =
-        error.message.includes("invalid_email")
-          ? "Ongeldig e-mailadres."
-          : error.message.includes("link_not_found")
-          ? "Deze link bestaat niet."
-          : "Er ging iets mis. Probeer opnieuw.";
+      const msg = error.message.includes("invalid_email")
+        ? "Ongeldig e-mailadres."
+        : error.message.includes("link_not_found")
+        ? "Deze link bestaat niet."
+        : "Er ging iets mis. Probeer opnieuw.";
       toast.error(msg);
       return;
     }
@@ -72,15 +104,12 @@ function SpinPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-12">
-      <a href="/" className="flex items-center gap-2 self-start">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary font-display text-sm font-bold text-primary-foreground">
-          PL
-        </div>
-        <span className="font-display text-lg font-semibold">Pokeloco</span>
+    <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-10">
+      <a href="/" className="self-start">
+        <Logo className="h-16 w-auto" />
       </a>
 
-      <div className="mt-10 flex-1">
+      <div className="mt-8 flex-1">
         {stage === "intro" && (
           <div className="text-center">
             <h1 className="font-display text-4xl md:text-5xl">
@@ -154,7 +183,7 @@ function SpinPage() {
             <h2 className="mt-4 font-display text-4xl">{meta.label}</h2>
             <p className="mt-2 text-muted-foreground">{meta.description}</p>
 
-            <div className="mt-8 rounded-3xl border-2 border-dashed border-primary/40 bg-card p-8 shadow-lg">
+            <div className="mt-8 rounded-3xl border-2 border-dashed border-primary/50 bg-card p-8 shadow-lg">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Jouw couponcode
               </p>
