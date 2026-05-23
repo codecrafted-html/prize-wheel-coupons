@@ -15,7 +15,7 @@ export const PRIZES: PrizeMeta[] = [
     label: "Gratis ijsje",
     short: "IJSJE",
     emoji: "🍦",
-    color: "oklch(0.85 0.13 80)",
+    color: "oklch(0.88 0.08 160)",
     description: "Eén gratis ijsje bij je volgende bestelling.",
   },
   {
@@ -23,7 +23,7 @@ export const PRIZES: PrizeMeta[] = [
     label: "Gratis soda",
     short: "SODA",
     emoji: "🥤",
-    color: "oklch(0.7 0.15 200)",
+    color: "oklch(0.72 0.14 175)",
     description: "Eén gratis soda bij je volgende bestelling.",
   },
   {
@@ -31,7 +31,7 @@ export const PRIZES: PrizeMeta[] = [
     label: "Gratis bowl",
     short: "BOWL",
     emoji: "🥗",
-    color: "oklch(0.72 0.17 145)",
+    color: "oklch(0.78 0.16 160)",
     description: "Eén gratis poke bowl naar keuze.",
   },
   {
@@ -39,7 +39,7 @@ export const PRIZES: PrizeMeta[] = [
     label: "50% korting",
     short: "-50%",
     emoji: "🎉",
-    color: "oklch(0.65 0.22 28)",
+    color: "oklch(0.55 0.13 165)",
     description: "50% korting op je volgende bestelling.",
   },
 ];
