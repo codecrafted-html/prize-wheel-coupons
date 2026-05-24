@@ -52,12 +52,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_spin_links: {
+        Args: { _passphrase: string }
+        Returns: {
+          claimed: boolean
+          coupon_code: string
+          created_at: string
+          email: string
+          prize: Database["public"]["Enums"]["spin_prize"]
+          slug: string
+        }[]
+      }
       claim_prize: {
         Args: { _email: string; _slug: string }
         Returns: {
           already_claimed: boolean
           coupon_code: string
           prize: Database["public"]["Enums"]["spin_prize"]
+        }[]
+      }
+      get_spin_link: {
+        Args: { _slug: string }
+        Returns: {
+          claimed: boolean
+          prize: Database["public"]["Enums"]["spin_prize"]
+          slug: string
         }[]
       }
     }
