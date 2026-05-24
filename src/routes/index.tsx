@@ -57,7 +57,46 @@ function Index() {
             className="absolute -inset-6 rounded-[3rem] bg-gradient-to-br from-[color:var(--lime)]/45 to-[color:var(--ocean)]/25 blur-2xl"
           />
           <div className="relative rounded-[2.5rem] border border-border/60 bg-card/80 p-8 backdrop-blur">
-            <div className="aspect-square w-full rounded-full bg-gradient-to-br from-primary via-[color:var(--lime)] to-[color:var(--ocean)] shadow-2xl" />
+            <div className="relative mx-auto aspect-square w-full max-w-md">
+              <div className="absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-1">
+                <div className="h-0 w-0 border-l-[14px] border-r-[14px] border-t-[22px] border-l-transparent border-r-transparent border-t-foreground drop-shadow" />
+              </div>
+              <div
+                className="relative h-full w-full rounded-full shadow-2xl ring-8 ring-card"
+                style={{
+                  background: `conic-gradient(
+                    oklch(0.85 0.13 75) 0deg 45deg,
+                    oklch(0.72 0.16 230) 45deg 90deg,
+                    oklch(0.74 0.17 145) 90deg 135deg,
+                    oklch(0.68 0.22 25) 135deg 180deg,
+                    oklch(0.85 0.13 75) 180deg 225deg,
+                    oklch(0.72 0.16 230) 225deg 270deg,
+                    oklch(0.74 0.17 145) 270deg 315deg,
+                    oklch(0.68 0.22 25) 315deg 360deg
+                  )`,
+                }}
+              >
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={`div-${i}`}
+                    className="absolute left-1/2 top-0 h-1/2 w-px origin-bottom bg-white/70"
+                    style={{ transform: `translateX(-50%) rotate(${i * 45}deg)` }}
+                  />
+                ))}
+                {["🍦", "🥤", "🥗", "💰", "🍦", "🥤", "🥗", "💰"].map((e, i) => (
+                  <div
+                    key={`emoji-${i}`}
+                    className="absolute left-1/2 top-1/2 text-3xl"
+                    style={{
+                      transform: `translate(-50%, -50%) rotate(${i * 45 + 22.5}deg) translateY(-95px)`,
+                    }}
+                  >
+                    <span className="block">{e}</span>
+                  </div>
+                ))}
+                <div className="absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary shadow-xl ring-4 ring-card" />
+              </div>
+            </div>
             <p className="mt-6 text-center text-sm text-muted-foreground">
               Eén link · één draai · één prijs
             </p>

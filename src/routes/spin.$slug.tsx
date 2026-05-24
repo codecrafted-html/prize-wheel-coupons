@@ -28,8 +28,6 @@ interface LinkRow {
   slug: string;
   prize: Prize;
   claimed: boolean;
-  coupon_code: string | null;
-  email: string | null;
 }
 
 function SpinPage() {
@@ -43,22 +41,18 @@ function SpinPage() {
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
-        .from("spin_links")
-        .select("slug, prize, claimed, coupon_code, email")
-        .eq("slug", slug)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("get_spin_link", { _slug: slug });
       if (error) {
         setLoadError(error.message);
         return;
       }
-      if (!data) {
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) {
         setLoadError("not_found");
         return;
       }
-      setLink(data as LinkRow);
-      setCoupon(data.coupon_code);
-      if (data.claimed) setStage("done");
+      setLink(row as LinkRow);
+      if (row.claimed) setStage("done");
     })();
   }, [slug]);
 
@@ -149,6 +143,36 @@ function SpinPage() {
             <h2 className="mt-4 font-display text-4xl">{meta.label}!</h2>
             <p className="mt-3 text-muted-foreground">{meta.description}</p>
 
+            {prize === "no_win" || prize === "try_again" ? (
+              <div className="mt-8 rounded-3xl border border-border bg-card p-6 text-center shadow-lg">
+                <p className="text-sm text-muted-foreground">
+                  Bedankt voor je deelname! Houd onze acties in de gaten via{" "}
+                  <a
+                    href="https://www.pokeloco.be/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-primary underline"
+                  >
+                    pokeloco.be
+                  </a>
+                  .
+                </p>
+                <button
+                  onClick={async () => {
+                    if (!link) return;
+                    await supabase.rpc("claim_prize", {
+                      _slug: link.slug,
+                      _email: "no-win@pokeloco.local",
+                    });
+                    setStage("done");
+                  }}
+                  className="mt-5 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  Sluiten
+                </button>
+              </div>
+            ) : (
+
             <form
               onSubmit={handleClaim}
               className="mt-8 rounded-3xl border border-border bg-card p-6 text-left shadow-lg"
@@ -174,7 +198,9 @@ function SpinPage() {
                 We gebruiken je mail enkel voor deze coupon.
               </p>
             </form>
+            )}
           </div>
+
         )}
 
         {stage === "done" && (
@@ -183,38 +209,55 @@ function SpinPage() {
             <h2 className="mt-4 font-display text-4xl">{meta.label}</h2>
             <p className="mt-2 text-muted-foreground">{meta.description}</p>
 
-            <div className="mt-8 rounded-3xl border-2 border-dashed border-primary/50 bg-card p-8 shadow-lg">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Jouw couponcode
+            {prize === "no_win" || prize === "try_again" ? (
+              <p className="mt-8 text-sm text-muted-foreground">
+                Bedankt voor je deelname! Houd onze acties in de gaten via{" "}
+                <a
+                  href="https://www.pokeloco.be/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-primary underline"
+                >
+                  pokeloco.be
+                </a>
+                .
               </p>
-              <p className="mt-3 select-all font-display text-3xl font-bold text-primary md:text-4xl">
-                {coupon ?? "—"}
-              </p>
-              <button
-                onClick={() => {
-                  if (coupon) {
-                    navigator.clipboard.writeText(coupon);
-                    toast.success("Code gekopieerd!");
-                  }
-                }}
-                className="mt-5 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-              >
-                Kopieer code
-              </button>
-            </div>
+            ) : (
+              <>
+                <div className="mt-8 rounded-3xl border-2 border-dashed border-primary/50 bg-card p-8 shadow-lg">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Jouw couponcode
+                  </p>
+                  <p className="mt-3 select-all font-display text-3xl font-bold text-primary md:text-4xl">
+                    {coupon ?? "—"}
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (coupon) {
+                        navigator.clipboard.writeText(coupon);
+                        toast.success("Code gekopieerd!");
+                      }
+                    }}
+                    className="mt-5 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                  >
+                    Kopieer code
+                  </button>
+                </div>
 
-            <p className="mt-6 text-sm text-muted-foreground">
-              Toon deze code bij je volgende bestelling op{" "}
-              <a
-                href="https://www.pokeloco.be/"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-primary underline"
-              >
-                pokeloco.be
-              </a>
-              .
-            </p>
+                <p className="mt-6 text-sm text-muted-foreground">
+                  Toon deze code bij je volgende bestelling op{" "}
+                  <a
+                    href="https://www.pokeloco.be/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-primary underline"
+                  >
+                    pokeloco.be
+                  </a>
+                  .
+                </p>
+              </>
+            )}
           </div>
         )}
       </div>

@@ -91,11 +91,9 @@ function AdminInner({ onLogout }: { onLogout: () => void }) {
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
-        .from("spin_links")
-        .select("slug, prize, claimed, email, coupon_code, created_at")
-        .order("created_at", { ascending: true })
-        .limit(500);
+      const { data, error } = await supabase.rpc("admin_list_spin_links", {
+        _passphrase: ADMIN_PASSWORD,
+      });
       if (error) toast.error(error.message);
       else setRows((data ?? []) as Row[]);
       setLoading(false);
@@ -123,6 +121,19 @@ function AdminInner({ onLogout }: { onLogout: () => void }) {
     const text = filtered.map((r) => `${origin}/spin/${r.slug}`).join("\n");
     navigator.clipboard.writeText(text);
     toast.success(`${filtered.length} links gekopieerd`);
+  }
+
+  function copyCouponsFor(prize: Prize | "all") {
+    const codes = rows
+      .filter((r) => r.coupon_code && (prize === "all" || r.prize === prize))
+      .map((r) => r.coupon_code!) ;
+    if (codes.length === 0) {
+      toast.error("Geen coupons gevonden");
+      return;
+    }
+    navigator.clipboard.writeText(codes.join("\n"));
+    const m = prize === "all" ? "alle prijzen" : prizeMeta(prize).label;
+    toast.success(`${codes.length} coupons gekopieerd (${m})`);
   }
 
   function downloadCsv() {
@@ -181,6 +192,31 @@ function AdminInner({ onLogout }: { onLogout: () => void }) {
         <Stat label="Open" value={stats.open} />
         <Stat label="Geclaimd" value={stats.claimed} />
       </div>
+
+      <div className="mt-6 rounded-2xl border border-border bg-card p-4">
+        <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
+          Kopieer couponcodes
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => copyCouponsFor("all")}
+            className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+          >
+            Alle coupons
+          </button>
+          {PRIZES.map((p) => (
+            <button
+              key={p.key}
+              onClick={() => copyCouponsFor(p.key)}
+              className="rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold hover:bg-accent"
+            >
+              {p.emoji} {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+
 
       <div className="mt-6 flex flex-wrap gap-2">
         <Chip active={filter === "all"} onClick={() => setFilter("all")}>
