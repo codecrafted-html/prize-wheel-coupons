@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { PRIZES, prizeMeta, type Prize } from "@/lib/prizes";
 import { Logo } from "@/components/Logo";
 
-// 🔒 Privé beheerpagina — wijzig dit wachtwoord wanneer je wil.
-const ADMIN_PASSWORD = "PokeLoco2026!";
-const STORAGE_KEY = "pl-admin-ok";
+// 🔒 Privé beheerpagina — het wachtwoord wordt server-side gevalideerd
+// door de Supabase RPC `admin_list_spin_links`. Er staat geen wachtwoord
+// in de client-bundle.
+const STORAGE_KEY = "pl-admin-pwd";
 
 export const Route = createFileRoute("/beheer-poke-loco")({
   ssr: false,
