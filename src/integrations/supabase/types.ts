@@ -52,6 +52,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_spin_links: {
+        Args: { _passphrase: string }
+        Returns: {
+          claimed: boolean
+          coupon_code: string
+          created_at: string
+          email: string
+          prize: Database["public"]["Enums"]["spin_prize"]
+          slug: string
+        }[]
+      }
       claim_prize: {
         Args: { _email: string; _slug: string }
         Returns: {
@@ -60,9 +71,28 @@ export type Database = {
           prize: Database["public"]["Enums"]["spin_prize"]
         }[]
       }
+      generate_coupon_code: {
+        Args: { _prize: Database["public"]["Enums"]["spin_prize"] }
+        Returns: string
+      }
+      get_spin_link: {
+        Args: { _slug: string }
+        Returns: {
+          claimed: boolean
+          prize: Database["public"]["Enums"]["spin_prize"]
+          slug: string
+        }[]
+      }
     }
     Enums: {
-      spin_prize: "ice_cream" | "soda" | "bowl" | "discount_50"
+      spin_prize:
+        | "ice_cream"
+        | "soda"
+        | "bowl"
+        | "discount_50"
+        | "no_win"
+        | "try_again"
+        | "side_dish"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -190,7 +220,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      spin_prize: ["ice_cream", "soda", "bowl", "discount_50"],
+      spin_prize: [
+        "ice_cream",
+        "soda",
+        "bowl",
+        "discount_50",
+        "no_win",
+        "try_again",
+        "side_dish",
+      ],
     },
   },
 } as const
