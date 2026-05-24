@@ -71,6 +71,10 @@ export type Database = {
           prize: Database["public"]["Enums"]["spin_prize"]
         }[]
       }
+      generate_coupon_code: {
+        Args: { _prize: Database["public"]["Enums"]["spin_prize"] }
+        Returns: string
+      }
       get_spin_link: {
         Args: { _slug: string }
         Returns: {
