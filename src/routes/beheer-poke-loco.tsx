@@ -98,7 +98,7 @@ function AdminPage() {
   }} />;
 }
 
-function AdminInner({ onLogout }: { onLogout: () => void }) {
+function AdminInner({ passphrase, onLogout }: { passphrase: string; onLogout: () => void }) {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | Prize>("all");
@@ -109,13 +109,18 @@ function AdminInner({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase.rpc("admin_list_spin_links", {
-        _passphrase: ADMIN_PASSWORD,
+        _passphrase: passphrase,
       });
-      if (error) toast.error(error.message);
-      else setRows((data ?? []) as Row[]);
+      if (error) {
+        toast.error("Sessie verlopen, log opnieuw in");
+        onLogout();
+        return;
+      }
+      setRows((data ?? []) as Row[]);
       setLoading(false);
     })();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passphrase]);
 
   const filtered = useMemo(
     () =>
