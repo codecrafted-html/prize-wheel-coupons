@@ -31,28 +31,40 @@ interface Row {
 }
 
 function AdminPage() {
-  const [authed, setAuthed] = useState(false);
-  const [pwd, setPwd] = useState("");
+  const [pwd, setPwd] = useState<string | null>(null);
+  const [input, setInput] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem(STORAGE_KEY) === "1") {
-      setAuthed(true);
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved) setPwd(saved);
     }
   }, []);
 
-  if (!authed) {
+  async function tryLogin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!input) return;
+    setSubmitting(true);
+    // Server-side validatie: roep de RPC één keer aan; bij verkeerd wachtwoord
+    // gooit Postgres "unauthorized". Geen client-side wachtwoord vergelijking.
+    const { error } = await supabase.rpc("admin_list_spin_links", {
+      _passphrase: input,
+    });
+    setSubmitting(false);
+    if (error) {
+      toast.error("Verkeerd wachtwoord");
+      return;
+    }
+    sessionStorage.setItem(STORAGE_KEY, input);
+    setPwd(input);
+  }
+
+  if (!pwd) {
     return (
       <main className="flex min-h-screen items-center justify-center px-6">
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (pwd === ADMIN_PASSWORD) {
-              sessionStorage.setItem(STORAGE_KEY, "1");
-              setAuthed(true);
-            } else {
-              toast.error("Verkeerd wachtwoord");
-            }
-          }}
+          onSubmit={tryLogin}
           className="w-full max-w-sm rounded-3xl border border-border bg-card p-8 text-center shadow-xl"
         >
           <Logo className="mx-auto h-20 w-auto" />
@@ -63,22 +75,26 @@ function AdminPage() {
           <input
             type="password"
             autoFocus
-            value={pwd}
-            onChange={(e) => setPwd(e.target.value)}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Wachtwoord"
             className="mt-6 w-full rounded-xl border border-input bg-background px-4 py-3 text-base outline-none ring-primary/40 focus:ring-2"
           />
-          <button className="mt-3 w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground hover:bg-primary/90">
-            Inloggen
+          <button
+            disabled={submitting}
+            className="mt-3 w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+          >
+            {submitting ? "Bezig…" : "Inloggen"}
           </button>
         </form>
       </main>
     );
   }
 
-  return <AdminInner onLogout={() => {
+  return <AdminInner passphrase={pwd} onLogout={() => {
     sessionStorage.removeItem(STORAGE_KEY);
-    setAuthed(false);
+    setPwd(null);
+    setInput("");
   }} />;
 }
 
